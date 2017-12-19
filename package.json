@@ -1,0 +1,31 @@
+{
+  "name": "lambda-wrap",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha --opts ./mocha.opts ./test/**/*.test.js",
+    "test:watch": "npm test -- --watch",
+    "test:coverage": "istanbul cover _mocha -- --opts ./mocha.opts ./test/**/*.test.js",
+    "test:coverage:threshold": "node ./node_modules/.bin/istanbul check --branches 100 --functions 100 --statements 100 --lines 100  ./coverage/coverage.json"
+  },
+  "author": "Pragonauts <lukas.hykl@pragonauts.com> (https://pragonauts.com)",
+  "license": "ISC",
+  "dependencies": {
+    "co": "^4.6.0"
+  },
+  "devDependencies": {
+    "chai": "^4.1.2",
+    "eslint": "^4.13.1",
+    "eslint-config-airbnb": "^16.1.0",
+    "eslint-mocha": "^0.3.1",
+    "eslint-plugin-import": "^2.8.0",
+    "eslint-plugin-jsdoc": "^3.2.0",
+    "eslint-plugin-jsx-a11y": "^6.0.3",
+    "eslint-plugin-mocha": "^4.11.0",
+    "eslint-plugin-react": "^7.5.1",
+    "istanbul": "^0.4.5",
+    "mocha": "^4.0.1",
+    "mocha-istanbul": "^0.3.0"
+  }
+}
