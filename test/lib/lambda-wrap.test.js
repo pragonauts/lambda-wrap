@@ -1,22 +1,22 @@
 'use strict';
 
 // - new
-//    X- mozem vytvorit novy wrap
+//     X mozem vytvorit novy wrap
 //     - novy wrap moze mat options ktore sa premietnu do event objectu
 // - wrap
 //     -
 // - before
-//     - mozem pridat sync middleware
-//     - mozem pridat async middleware
-//     - mozem pridat pole middlewares
-//     - before ma pristup k event a context 
-//     - middleware su vzdy vykonane posebe a cakaju na vysledok predosleho
+//     X mozem pridat sync middleware
+//     X mozem pridat async middleware
+//     X mozem pridat pole middlewares
+//     X before ma pristup k event a context 
+//     X middleware su vzdy vykonane posebe a cakaju na vysledok predosleho
 // - catch
-//     - mozem pridat sync error
-//     - mozem pridat async error
-//     - mozem pridat pole errors
+//     X mozem pridat sync error
+//     X mozem pridat async error
+//     X mozem pridat pole errors
 //     - catch ma pristup k event a context
-//     - errors su vzdy vykonane posebe a cakaju na vysledok predosleho
+//     X errors su vzdy vykonane posebe a cakaju na vysledok predosleho
 //     - ak nezavolam v error throw tak sa vrati normalna response
 
 const { assert } = require('chai');
@@ -166,7 +166,7 @@ describe('LambdaWrap', () => {
             const handler = wrap(function* () {
                 throw new Error('Error');
             });
-            
+
             handler(event, context, callback);
         });
 
