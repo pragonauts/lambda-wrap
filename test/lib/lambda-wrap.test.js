@@ -9,7 +9,7 @@
 //     X mozem pridat sync middleware
 //     X mozem pridat async middleware
 //     X mozem pridat pole middlewares
-//     X before ma pristup k event a context 
+//     X before ma pristup k event a context
 //     X middleware su vzdy vykonane posebe a cakaju na vysledok predosleho
 // - catch
 //     X mozem pridat sync error
@@ -24,7 +24,12 @@ const { assert } = require('chai');
 const { LambdaWrap } = require('../../lib/lambda-wrap');
 
 describe('LambdaWrap', () => {
-    let wrap, event, context, fn, doSyncStuff, doAsyncStuff;
+    let wrap;
+    let event;
+    let context;
+    let fn;
+    let doSyncStuff;
+    let doAsyncStuff;
 
     beforeEach(() => {
         // Initialize new Lambda wrap and mock event and context objects
@@ -49,9 +54,9 @@ describe('LambdaWrap', () => {
 
                 if (outcome === 'resolve') {
                     return setTimeout(() => resolve(bool), 100);
-                } else {
-                    return setTimeout(() => reject(error), 100);
-                }                
+                }
+
+                return setTimeout(() => reject(error), 100);
             })
         );
     });
@@ -67,12 +72,12 @@ describe('LambdaWrap', () => {
 
     });
 
-    describe('before', (done) => {
+    describe('before', () => {
         it('should be able to add synchronous middleware', (done) => {
             const callback = (ctx, data) => {
                 const body = JSON.parse(data.body);
 
-                assert.equal(body.error, 'Middleware error');
+                assert.equal(body.message, 'Middleware error');
                 done();
             };
 
@@ -81,7 +86,7 @@ describe('LambdaWrap', () => {
             });
 
             const handler = wrap(fn);
-            
+
             handler(event, context, callback);
         });
 
@@ -89,7 +94,7 @@ describe('LambdaWrap', () => {
             const callback = (ctx, data) => {
                 const body = JSON.parse(data.body);
 
-                assert.equal(body.error, 'Middleware error');
+                assert.equal(body.message, 'Middleware error');
                 done();
             };
 
@@ -102,7 +107,7 @@ describe('LambdaWrap', () => {
             });
 
             const handler = wrap(fn);
-            
+
             handler(event, context, callback);
         });
 
@@ -114,13 +119,13 @@ describe('LambdaWrap', () => {
                 done();
             };
 
-            wrap.before(function (event, context) {
+            wrap.before((event, context) => {
                 assert.equal(event.name, 'event');
                 assert.equal(context.name, 'context')
             });
 
             const handler = wrap(fn);
-            
+
             handler(event, context, callback);
         });
 
@@ -131,7 +136,7 @@ describe('LambdaWrap', () => {
 
             wrap.before(function* (event) {
                 const result = yield doAsyncStuff('resolve', true);
-                
+
                 if (result) {
                     event.options.headers = {
                         'X-Auth-Token': 'xyz123'
@@ -145,7 +150,7 @@ describe('LambdaWrap', () => {
             });
 
             const handler = wrap(fn);
-            
+
             handler(event, context, callback);
         });
     });
@@ -155,7 +160,7 @@ describe('LambdaWrap', () => {
             const callback = (ctx, data) => {
                 const body = JSON.parse(data.body);
 
-                assert.equal(body.error, 'Catch error');
+                assert.equal(body.message, 'Catch error');
                 done();
             };
 
@@ -174,7 +179,7 @@ describe('LambdaWrap', () => {
             const callback = (ctx, data) => {
                 const body = JSON.parse(data.body);
 
-                assert.equal(body.error, 'Catch error');
+                assert.equal(body.message, 'Catch error');
                 done();
             };
 
@@ -189,7 +194,7 @@ describe('LambdaWrap', () => {
             const handler = wrap(function* () {
                 throw new Error('Error');
             });
-            
+
             handler(event, context, callback);
         });
 
@@ -201,13 +206,13 @@ describe('LambdaWrap', () => {
             const callback = (ctx, data) => {
                 const body = JSON.parse(data.body);
 
-                assert.equal(body.error, 'Second error');
+                assert.equal(body.message, 'Second error');
                 done();
             };
 
             wrap.catch(function* (err) {
                 const result = yield doAsyncStuff('resolve', false);
-                
+
                 if (!result) {
                     throw new Error('First error');
                 }
@@ -215,7 +220,7 @@ describe('LambdaWrap', () => {
 
             wrap.catch(function* (err) {
                 const result = yield doAsyncStuff('resolve', false);
-                
+
                 if (!result) {
                     throw new Error('Second error');
                 }
@@ -224,7 +229,7 @@ describe('LambdaWrap', () => {
             const handler = wrap(function* () {
                 throw new Error('Error');
             });
-            
+
             handler(event, context, callback);
         });
     });
@@ -234,6 +239,10 @@ describe('LambdaWrap', () => {
     });
 
     describe('errorResponse', () => {
+
+    });
+
+    describe('logger', () => {
 
     });
 });
