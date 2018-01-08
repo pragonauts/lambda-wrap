@@ -1,24 +1,5 @@
 'use strict';
 
-// - new
-//     X mozem vytvorit novy wrap
-//     - novy wrap moze mat options ktore sa premietnu do event objectu
-// - wrap
-//     -
-// - before
-//     X mozem pridat sync middleware
-//     X mozem pridat async middleware
-//     X mozem pridat pole middlewares
-//     X before ma pristup k event a context
-//     X middleware su vzdy vykonane posebe a cakaju na vysledok predosleho
-// - catch
-//     X mozem pridat sync error
-//     X mozem pridat async error
-//     X mozem pridat pole errors
-//     - catch ma pristup k event a context
-//     X errors su vzdy vykonane posebe a cakaju na vysledok predosleho
-//     - ak nezavolam v error throw tak sa vrati normalna response
-
 const { assert } = require('chai');
 
 const { LambdaWrap } = require('../../lib/lambda-wrap');
@@ -27,6 +8,7 @@ describe('LambdaWrap', () => {
     let wrap;
     let event;
     let context;
+    let loggerMock;
     let fn;
     let doSyncStuff;
     let doAsyncStuff;
@@ -36,6 +18,13 @@ describe('LambdaWrap', () => {
         wrap = new LambdaWrap();
         event = {};
         context = {};
+
+        loggerMock = {
+            log: () => {},
+            error: () => {}
+        };
+
+        wrap.logger = loggerMock;
 
         // Function to be passed to handler
         fn = function* () {
@@ -66,10 +55,28 @@ describe('LambdaWrap', () => {
 
             assert.instanceOf(wrap, LambdaWrap);
         });
-    });
 
-    describe('wrap', () => {
+        it('should be able to pass options to event object', (done) => {
+            wrap = new LambdaWrap({
+                headers: { 'X-Auth-Token': '1234' }
+            });
 
+            wrap.logger = loggerMock;
+
+            const handler = wrap(function* (e) {
+                const { headers } = e.options;
+
+                assert.equal(headers['X-Auth-Token'], '1234');
+                done();
+
+                return {
+                    statusCode: 200,
+                    message: 'test'
+                };
+            });
+
+            handler(event, context, () => {});
+        });
     });
 
     describe('before', () => {
@@ -115,18 +122,15 @@ describe('LambdaWrap', () => {
             event = { name: 'event' };
             context = { name: 'context' };
 
-            const callback = (ctx, data) => {
-                done();
-            };
-
             wrap.before((event, context) => {
                 assert.equal(event.name, 'event');
-                assert.equal(context.name, 'context')
+                assert.equal(context.name, 'context');
+                done();
             });
 
             const handler = wrap(fn);
 
-            handler(event, context, callback);
+            handler(event, context, () => {});
         });
 
         it('should execute middlewares in order', (done) => {
@@ -198,8 +202,24 @@ describe('LambdaWrap', () => {
             handler(event, context, callback);
         });
 
-        xit('should have access to event and context', (done) => {
+        it('should have access to error, event and context objects', (done) => {
+            const event = { name: 'event' };
+            const context = { name: 'context' };
 
+            fn = function* () {
+                throw new Error('Some test error');
+            };
+
+            wrap.catch((err, event, context) => {
+                assert.equal(err.message, 'Some test error');
+                assert.equal(event.name, 'event');
+                assert.equal(context.name, 'context');
+                done();
+            });
+
+            const handler = wrap(fn);
+
+            handler(event, context, () => {});
         });
 
         it('should execute catches in order', (done) => {
@@ -232,17 +252,25 @@ describe('LambdaWrap', () => {
 
             handler(event, context, callback);
         });
-    });
 
-    describe('response', () => {
+        it('should be able to return non error response', (done) => {
+            const callback = (ctx, data) => {
+                const body = JSON.parse(data.body);
 
-    });
+                assert.equal(body.statusCode, 200);
+                assert.equal(body.data, 'Some returned data');
+                done();
+            };
 
-    describe('errorResponse', () => {
+            wrap.catch(function* (err) {
+                return { statusCode: 200, data: 'Some returned data' };
+            });
 
-    });
+            const handler = wrap(function* () {
+                throw new Error('Error');
+            });
 
-    describe('logger', () => {
-
+            handler(event, context, callback);
+        });
     });
 });
