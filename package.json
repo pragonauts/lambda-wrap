@@ -4,11 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "mocha --opts ./mocha.opts ./test/**/*.test.js",
-    "test:watch": "npm test -- --watch",
-    "test:coverage": "istanbul cover _mocha -- --opts ./mocha.opts ./test/**/*.test.js",
-    "test:coverage:threshold": "node ./node_modules/.bin/istanbul check --branches 100 --functions 100 --statements 100 --lines 100  ./coverage/coverage.json",
-    "test:lint": "eslint ./lib/**/*.js"
+    "test": "npm run test:lint && npm run test:unit && npm run test:coverage && npm run test:coverage:threshold",
+    "test:unit": "mocha ./test/**/*.test.js",
+    "test:unit:watch": "npm run test:unit -- --watch",
+    "test:coverage": "istanbul cover _mocha -- ./test/**/*.test.js",
+    "test:coverage:threshold": "node ./node_modules/.bin/istanbul check",
+    "test:lint": "eslint ./lib/**/*.js ./test/**/*.js"
   },
   "author": "Pragonauts <lukas.hykl@pragonauts.com> (https://pragonauts.com)",
   "license": "ISC",

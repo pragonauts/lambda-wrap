@@ -10,7 +10,6 @@ describe('LambdaWrap', () => {
     let context;
     let loggerMock;
     let fn;
-    let doSyncStuff;
     let doAsyncStuff;
 
     beforeEach(() => {
@@ -32,9 +31,6 @@ describe('LambdaWrap', () => {
                 message: 'test'
             };
         };
-
-        // Mock synchronous function
-        doSyncStuff = bool => bool;
 
         // Mock asynchronous function
         doAsyncStuff = (outcome, bool) => (
@@ -122,9 +118,9 @@ describe('LambdaWrap', () => {
             event = { name: 'event' };
             context = { name: 'context' };
 
-            wrap.before((event, context) => {
-                assert.equal(event.name, 'event');
-                assert.equal(context.name, 'context');
+            wrap.before((e, con) => {
+                assert.equal(e.name, 'event');
+                assert.equal(con.name, 'context');
                 done();
             });
 
@@ -134,23 +130,23 @@ describe('LambdaWrap', () => {
         });
 
         it('should execute middlewares in order', (done) => {
-            const callback = (ctx, data) => {
+            const callback = () => {
                 done();
             };
 
-            wrap.before(function* (event) {
+            wrap.before(function* (e) {
                 const result = yield doAsyncStuff('resolve', true);
 
                 if (result) {
-                    event.options.headers = {
+                    e.options.headers = {
                         'X-Auth-Token': 'xyz123'
                     };
                 }
             });
 
-            wrap.before(function* (event) {
-                const result = yield doAsyncStuff('resolve', true);
-                assert.equal(event.options.headers['X-Auth-Token'], 'xyz123');
+            wrap.before(function* (e) {
+                yield doAsyncStuff('resolve', true);
+                assert.equal(e.options.headers['X-Auth-Token'], 'xyz123');
             });
 
             const handler = wrap(fn);
@@ -203,17 +199,17 @@ describe('LambdaWrap', () => {
         });
 
         it('should have access to error, event and context objects', (done) => {
-            const event = { name: 'event' };
-            const context = { name: 'context' };
+            event = { name: 'event' };
+            context = { name: 'context' };
 
             fn = function* () {
                 throw new Error('Some test error');
             };
 
-            wrap.catch((err, event, context) => {
+            wrap.catch((err, e, con) => {
                 assert.equal(err.message, 'Some test error');
-                assert.equal(event.name, 'event');
-                assert.equal(context.name, 'context');
+                assert.equal(e.name, 'event');
+                assert.equal(con.name, 'context');
                 done();
             });
 
@@ -230,7 +226,7 @@ describe('LambdaWrap', () => {
                 done();
             };
 
-            wrap.catch(function* (err) {
+            wrap.catch(function* () {
                 const result = yield doAsyncStuff('resolve', false);
 
                 if (!result) {
@@ -238,7 +234,7 @@ describe('LambdaWrap', () => {
                 }
             });
 
-            wrap.catch(function* (err) {
+            wrap.catch(function* () {
                 const result = yield doAsyncStuff('resolve', false);
 
                 if (!result) {
@@ -262,7 +258,7 @@ describe('LambdaWrap', () => {
                 done();
             };
 
-            wrap.catch(function* (err) {
+            wrap.catch(function* () {
                 return { statusCode: 200, data: 'Some returned data' };
             });
 
