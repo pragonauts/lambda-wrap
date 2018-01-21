@@ -46,23 +46,27 @@ describe('LambdaWrap', () => {
         );
     });
 
-    describe('new', () => {
+    describe('constructor', () => {
         it('should return an instance of LambdaWrap', () => {
-
             assert.instanceOf(wrap, LambdaWrap);
         });
 
-        it('should be able to pass options to event object', (done) => {
+        it('should be able to assign new attributes to options', (done) => {
+            event = {
+                headers: { 'Access-Control-Allow-Origin': '*' }
+            };
+
             wrap = new LambdaWrap({
-                headers: { 'X-Auth-Token': '1234' }
+                someOption: 'value'
             });
 
             wrap.logger = loggerMock;
 
             const handler = wrap(function* (e) {
-                const { headers } = e.options;
+                const { headers, someOption } = e;
 
-                assert.equal(headers['X-Auth-Token'], '1234');
+                assert.equal(headers['Access-Control-Allow-Origin'], '*');
+                assert.equal(someOption, 'value');
                 done();
 
                 return {
@@ -73,6 +77,87 @@ describe('LambdaWrap', () => {
 
             handler(event, context, () => {});
         });
+
+        it('should be able to assign new values options\' attributes', (done) => {
+            event = {
+                headers: { 'Access-Control-Allow-Origin': '*' }
+            };
+
+            wrap = new LambdaWrap({
+                headers: { 'X-Auth-Token': '1234' }
+            });
+
+            wrap.logger = loggerMock;
+
+            const handler = wrap(function* (e) {
+                const { headers } = e;
+
+                assert.equal(headers['X-Auth-Token'], '1234');
+                assert.equal(headers['Access-Control-Allow-Origin'], '*');
+                done();
+
+                return {
+                    statusCode: 200,
+                    message: 'test'
+                };
+            });
+
+            handler(event, context, () => {});
+        });
+
+        it('should set default response handler', () => {
+            const { name } = wrap.responseHandler;
+
+            assert.equal(name, 'response');
+        });
+
+        it('should set default error response handler', () => {
+            const { name } = wrap.errorResponseHandler;
+
+            assert.equal(name, 'errorResponse');
+        });
+
+        it('should initialize empty middleware handlers array', () => {
+            const { _middlewareHandlers } = wrap;
+
+            assert.deepEqual(_middlewareHandlers, []);
+        });
+
+        it('should initialize empty catch handlers array', () => {
+            const { _catchHandlers } = wrap;
+
+            assert.deepEqual(_catchHandlers, []);
+        });
+
+        it('should log set default logger');
+    });
+
+    describe('wrap', () => {
+        xit('should return a function');
+    });
+
+    describe('responseHandler', () => {
+        it('should allow to override default response handler', () => {
+            const newResponseHandler = () => {};
+
+            wrap.responseHandler = newResponseHandler;
+
+            assert.equal(wrap.responseHandler, newResponseHandler);
+        });
+    });
+
+    describe('errorResponseHandler', () => {
+        it('should allow to override default error response handler', () => {
+            const newErrorResponseHandler = () => {};
+
+            wrap.errorResponseHandler = newErrorResponseHandler;
+
+            assert.equal(wrap.errorResponseHandler, newErrorResponseHandler);
+        });
+    });
+
+    describe('logger', () => {
+        it('should allow to override default logger');
     });
 
     describe('before', () => {
