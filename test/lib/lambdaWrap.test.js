@@ -2,7 +2,7 @@
 
 const { assert } = require('chai');
 
-const { LambdaWrap } = require('../../lib/lambda-wrap');
+const LambdaWrap = require('../../lib/lambdaWrap');
 
 describe('LambdaWrap', () => {
     let wrap;
@@ -336,15 +336,16 @@ describe('LambdaWrap', () => {
 
         it('should be able to return non error response', (done) => {
             const callback = (ctx, data) => {
+                const { statusCode } = data;
                 const body = JSON.parse(data.body);
 
-                assert.equal(body.statusCode, 200);
-                assert.equal(body.data, 'Some returned data');
+                assert.equal(statusCode, 200);
+                assert.equal(body.message, 'Some returned data');
                 done();
             };
 
             wrap.catch(function* () {
-                return { statusCode: 200, data: 'Some returned data' };
+                return { statusCode: 200, body: { message: 'Some returned data' } };
             });
 
             const handler = wrap(function* () {

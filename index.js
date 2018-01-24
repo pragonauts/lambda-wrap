@@ -1,6 +1,6 @@
 'use strict';
 
-const wrapError = require('./lib/error');
-const { LambdaWrap } = require('./lib/lambda-wrap');
+const error = require('./lib/error');
+const LambdaWrap = require('./lib/lambdaWrap');
 
-module.exports = { LambdaWrap, wrapError };
+module.exports = { LambdaWrap, error };
