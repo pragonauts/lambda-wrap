@@ -9,7 +9,8 @@
     "test:unit:watch": "npm run test:unit -- --watch",
     "test:coverage": "istanbul cover _mocha -- ./test/**/*.test.js",
     "test:coverage:threshold": "node ./node_modules/.bin/istanbul check",
-    "test:lint": "eslint ./lib/**/*.js ./test/**/*.js"
+    "test:lint": "eslint ./lib/**/*.js ./test/**/*.js",
+    "doc:generate": "node ./bin/makeApiDoc.js"
   },
   "author": "Pragonauts <lukas.hykl@pragonauts.com> (https://pragonauts.com)",
   "license": "ISC",
