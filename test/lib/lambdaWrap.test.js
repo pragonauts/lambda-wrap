@@ -133,7 +133,7 @@ describe('LambdaWrap', () => {
     });
 
     describe('wrap', () => {
-        xit('should return a function');
+        it('should return a function');
     });
 
     describe('responseHandler', () => {
