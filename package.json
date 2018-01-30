@@ -1,14 +1,14 @@
 {
   "name": "lambda-wrap",
-  "version": "1.0.3",
-  "description": "",
+  "version": "1.1.0",
+  "description": "AWS Serverless wrapper for async generators",
   "main": "index.js",
   "scripts": {
-    "test": "npm run test:lint && npm run test:unit && npm run test:coverage && npm run test:coverage:threshold",
+    "test": "npm run test:lint && npm run test:coverage && npm run test:coverage:threshold",
     "test:unit": "mocha ./test/**/*.test.js",
     "test:unit:watch": "npm run test:unit -- --watch",
-    "test:coverage": "istanbul cover _mocha -- ./test/**/*.test.js",
-    "test:coverage:threshold": "node ./node_modules/.bin/istanbul check",
+    "test:coverage": "nyc --reporter=html mocha --opts ./mocha.opts ./test/**/*.test.js && nyc report",
+    "test:coverage:threshold": "nyc check-coverage --lines 80 --functions 70 --branches 60",
     "test:lint": "eslint ./lib/**/*.js ./test/**/*.js",
     "doc:generate": "node ./bin/makeApiDoc.js"
   },
@@ -27,9 +27,8 @@
     "eslint-plugin-jsx-a11y": "^6.0.3",
     "eslint-plugin-mocha": "^4.11.0",
     "eslint-plugin-react": "^7.5.1",
-    "istanbul": "^0.4.5",
     "jsdoc-to-markdown": "^4.0.1",
     "mocha": "^4.0.1",
-    "mocha-istanbul": "^0.3.0"
+    "nyc": "^11.2.1"
   }
 }

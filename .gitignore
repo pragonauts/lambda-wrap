@@ -8,3 +8,7 @@
 npm-debug.log
 node_modules
 coverage
+
+# Coverage
+
+.nyc_output
