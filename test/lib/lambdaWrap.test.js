@@ -2,10 +2,10 @@
 
 const { assert } = require('chai');
 
-const LambdaWrap = require('../../lib/lambdaWrap');
+const lambdaWrap = require('../../lib/lambdaWrap');
 
 describe('LambdaWrap', () => {
-    let wrap;
+    let wrap = lambdaWrap();
     let event;
     let context;
     let loggerMock;
@@ -14,13 +14,14 @@ describe('LambdaWrap', () => {
 
     beforeEach(() => {
         // Initialize new Lambda wrap and mock event and context objects
-        wrap = new LambdaWrap();
+        wrap = lambdaWrap();
         event = {};
         context = {};
 
         loggerMock = {
             log: () => {},
-            error: () => {}
+            error: (e) => { console.warn(e); }, // eslint-disable-line
+            warn: () => {}
         };
 
         wrap.logger = loggerMock;
@@ -47,63 +48,6 @@ describe('LambdaWrap', () => {
     });
 
     describe('constructor', () => {
-        it('should return an instance of LambdaWrap', () => {
-            assert.instanceOf(wrap, LambdaWrap);
-        });
-
-        it('should be able to assign new attributes to options', (done) => {
-            event = {
-                headers: { 'Access-Control-Allow-Origin': '*' }
-            };
-
-            wrap = new LambdaWrap({
-                someOption: 'value'
-            });
-
-            wrap.logger = loggerMock;
-
-            const handler = wrap(function* (e) {
-                const { headers, someOption } = e;
-
-                assert.equal(headers['Access-Control-Allow-Origin'], '*');
-                assert.equal(someOption, 'value');
-                done();
-
-                return {
-                    statusCode: 200,
-                    message: 'test'
-                };
-            });
-
-            handler(event, context, () => {});
-        });
-
-        it('should be able to assign new values options\' attributes', (done) => {
-            event = {
-                headers: { 'Access-Control-Allow-Origin': '*' }
-            };
-
-            wrap = new LambdaWrap({
-                headers: { 'X-Auth-Token': '1234' }
-            });
-
-            wrap.logger = loggerMock;
-
-            const handler = wrap(function* (e) {
-                const { headers } = e;
-
-                assert.equal(headers['X-Auth-Token'], '1234');
-                assert.equal(headers['Access-Control-Allow-Origin'], '*');
-                done();
-
-                return {
-                    statusCode: 200,
-                    message: 'test'
-                };
-            });
-
-            handler(event, context, () => {});
-        });
 
         it('should set default response handler', () => {
             const { name } = wrap.responseHandler;
@@ -134,6 +78,25 @@ describe('LambdaWrap', () => {
 
     describe('wrap', () => {
         it('should return a function');
+
+        it('should accept async functions', (done) => {
+            const handler = wrap(async (ev) => {
+                const { body } = ev;
+
+                await new Promise(r => setTimeout(r, 10));
+
+                return {
+                    body
+                };
+            });
+
+            const callback = (ctx, data) => {
+                assert.equal(data.body, 'Hello');
+                done();
+            };
+
+            handler({ body: 'Hello' }, context, callback);
+        });
     });
 
     describe('responseHandler', () => {
@@ -165,7 +128,7 @@ describe('LambdaWrap', () => {
             const callback = (ctx, data) => {
                 const body = JSON.parse(data.body);
 
-                assert.equal(body.message, 'Middleware error');
+                assert.equal(body.error, 'Middleware error');
                 done();
             };
 
@@ -182,7 +145,7 @@ describe('LambdaWrap', () => {
             const callback = (ctx, data) => {
                 const body = JSON.parse(data.body);
 
-                assert.equal(body.message, 'Middleware error');
+                assert.equal(body.error, 'Middleware error');
                 done();
             };
 
@@ -214,27 +177,41 @@ describe('LambdaWrap', () => {
             handler(event, context, () => {});
         });
 
-        it('should execute middlewares in order', (done) => {
+    });
+
+    describe('finally', () => {
+        it('should be called before the callback if set', (done) => {
+            let finallyCalls = 0;
+
             const callback = () => {
+                assert.equal(finallyCalls, 1);
                 done();
             };
 
-            wrap.before(function* (e) {
-                const result = yield doAsyncStuff('resolve', true);
-
-                if (result) {
-                    e.options.headers = {
-                        'X-Auth-Token': 'xyz123'
-                    };
-                }
+            wrap.finally(() => {
+                finallyCalls++;
             });
 
-            wrap.before(function* (e) {
-                yield doAsyncStuff('resolve', true);
-                assert.equal(e.options.headers['X-Auth-Token'], 'xyz123');
+            const handler = wrap(function* () {
+                throw new Error('Error');
             });
 
-            const handler = wrap(fn);
+            handler(event, context, callback);
+        });
+
+        it('should be able to modify response', (done) => {
+            const test = {};
+
+            const callback = (err, res) => {
+                assert.strictEqual(res, test);
+                done();
+            };
+
+            wrap.finally(() => [null, test]);
+
+            const handler = wrap(function* () {
+                throw new Error('Error');
+            });
 
             handler(event, context, callback);
         });
@@ -245,7 +222,7 @@ describe('LambdaWrap', () => {
             const callback = (ctx, data) => {
                 const body = JSON.parse(data.body);
 
-                assert.equal(body.message, 'Catch error');
+                assert.equal(body.error, 'Catch error');
                 done();
             };
 
@@ -264,7 +241,7 @@ describe('LambdaWrap', () => {
             const callback = (ctx, data) => {
                 const body = JSON.parse(data.body);
 
-                assert.equal(body.message, 'Catch error');
+                assert.equal(body.error, 'Catch error');
                 done();
             };
 
@@ -307,7 +284,7 @@ describe('LambdaWrap', () => {
             const callback = (ctx, data) => {
                 const body = JSON.parse(data.body);
 
-                assert.equal(body.message, 'Second error');
+                assert.equal(body.error, 'Second error');
                 done();
             };
 
