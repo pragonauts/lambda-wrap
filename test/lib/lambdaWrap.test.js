@@ -27,11 +27,9 @@ describe('LambdaWrap', () => {
         wrap.logger = loggerMock;
 
         // Function to be passed to handler
-        fn = function* () {
-            return {
-                message: 'test'
-            };
-        };
+        fn = async () => ({
+            message: 'test'
+        });
 
         // Mock asynchronous function
         doAsyncStuff = (outcome, bool) => (
@@ -97,6 +95,46 @@ describe('LambdaWrap', () => {
 
             handler({ body: 'Hello' }, context, callback);
         });
+
+        it('should not share headers', (done) => {
+            const wr = lambdaWrap({ headers: { A: 1 } });
+
+            const handler = wr(async (ev) => {
+                const { body } = ev;
+
+                await new Promise(r => setTimeout(r, 10));
+
+                return {
+                    body,
+                    headers: { B: 1 }
+                };
+            });
+
+            const callback = (ctx, data) => {
+                assert.deepEqual(data.headers, { A: 1, B: 1, 'Content-Type': 'text/plain; charset=utf-8' });
+
+                const handler2 = wr(async (ev) => {
+                    const { body } = ev;
+
+                    await new Promise(r => setTimeout(r, 10));
+
+                    return {
+                        body,
+                        headers: { C: 1 }
+                    };
+                });
+
+                const callback2 = (c, dt) => {
+                    assert.deepEqual(dt.headers, { A: 1, C: 1, 'Content-Type': 'text/plain; charset=utf-8' });
+                    done();
+                };
+
+                handler2({ body: 'Hello' }, context, callback2);
+            };
+
+            handler({ body: 'Hello' }, context, callback);
+
+        });
     });
 
     describe('responseHandler', () => {
@@ -149,8 +187,8 @@ describe('LambdaWrap', () => {
                 done();
             };
 
-            wrap.before(function* () {
-                const result = yield doAsyncStuff('resolve', false);
+            wrap.before(async () => {
+                const result = await doAsyncStuff('resolve', false);
 
                 if (!result) {
                     throw new Error('Middleware error');
@@ -192,8 +230,8 @@ describe('LambdaWrap', () => {
                 finallyCalls++;
             });
 
-            const handler = wrap(function* () {
-                throw new Error('Error');
+            const handler = wrap(async () => {
+                throw new Error('My Error');
             });
 
             handler(event, context, callback);
@@ -209,8 +247,8 @@ describe('LambdaWrap', () => {
 
             wrap.finally(() => [null, test]);
 
-            const handler = wrap(function* () {
-                throw new Error('Error');
+            const handler = wrap(async () => {
+                throw new Error('My Error');
             });
 
             handler(event, context, callback);
@@ -226,11 +264,11 @@ describe('LambdaWrap', () => {
                 done();
             };
 
-            wrap.catch(function* () {
+            wrap.catch(() => {
                 throw new Error('Catch error');
             });
 
-            const handler = wrap(function* () {
+            const handler = wrap(() => {
                 throw new Error('Error');
             });
 
@@ -245,15 +283,15 @@ describe('LambdaWrap', () => {
                 done();
             };
 
-            wrap.catch(function* () {
-                const result = yield doAsyncStuff('resolve', false);
+            wrap.catch(async () => {
+                const result = await doAsyncStuff('resolve', false);
 
                 if (!result) {
                     throw new Error('Catch error');
                 }
             });
 
-            const handler = wrap(function* () {
+            const handler = wrap(async () => {
                 throw new Error('Error');
             });
 
@@ -264,7 +302,7 @@ describe('LambdaWrap', () => {
             event = { name: 'event' };
             context = { name: 'context' };
 
-            fn = function* () {
+            fn = async () => {
                 throw new Error('Some test error');
             };
 
@@ -288,23 +326,23 @@ describe('LambdaWrap', () => {
                 done();
             };
 
-            wrap.catch(function* () {
-                const result = yield doAsyncStuff('resolve', false);
+            wrap.catch(async () => {
+                const result = await doAsyncStuff('resolve', false);
 
                 if (!result) {
                     throw new Error('First error');
                 }
             });
 
-            wrap.catch(function* () {
-                const result = yield doAsyncStuff('resolve', false);
+            wrap.catch(async () => {
+                const result = await doAsyncStuff('resolve', false);
 
                 if (!result) {
                     throw new Error('Second error');
                 }
             });
 
-            const handler = wrap(function* () {
+            const handler = wrap(async () => {
                 throw new Error('Error');
             });
 
@@ -321,11 +359,9 @@ describe('LambdaWrap', () => {
                 done();
             };
 
-            wrap.catch(function* () {
-                return { statusCode: 200, body: { message: 'Some returned data' } };
-            });
+            wrap.catch(() => ({ statusCode: 200, body: { message: 'Some returned data' } }));
 
-            const handler = wrap(function* () {
+            const handler = wrap(async () => {
                 throw new Error('Error');
             });
 

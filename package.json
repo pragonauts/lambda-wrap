@@ -1,6 +1,6 @@
 {
   "name": "lambda-wrap",
-  "version": "2.0.0-alpha.3",
+  "version": "3.0.0",
   "description": "AWS Serverless wrapper for async generators",
   "main": "index.js",
   "repository": {
@@ -18,9 +18,6 @@
   },
   "author": "Pragonauts (https://pragonauts.com)",
   "license": "MIT",
-  "optionalDependencies": {
-    "co": "^4.6.0"
-  },
   "devDependencies": {
     "chai": "^4.1.2",
     "eslint": "^4.19.1",

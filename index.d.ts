@@ -41,19 +41,25 @@ interface LambdaWrapOptions {
     verboseError?: boolean
     verboseLog?: boolean
     callbackWaitsForEmptyEventLoop?: boolean
+    log?: Logger
+    logFields?: Object
+    createLogMeta?: Function
+    filterLogData?: Function
 }
 
 function lambdaHandler (event: Object, context: Object, callback: Function): void
 
 interface wrapperFunctionType { (event: ServerlessLambdaEvent, context: Object): any }
+
 interface Logger {
     log (...args:any[]): any
     error (...args:any[]): any
     warn (...args:any[]): any
+    info (...args:any[]): any
 }
 
-interface responseHandlerType { (data: Object, event: ServerlessLambdaEvent, context: Object, callback: Function, logger?: Logger, options?: LambdaWrapOptions): any }
-interface errorResponseHandlerType { (error: Error, event: ServerlessLambdaEvent, context: Object, callback: Function, logger?: Logger, options?: LambdaWrapOptions): any }
+interface responseHandlerType { (data: Object, event: ServerlessLambdaEvent, context: Object, callback: Function, options?: LambdaWrapOptions): any }
+interface errorResponseHandlerType { (error: Error, event: ServerlessLambdaEvent, context: Object, callback: Function, options?: LambdaWrapOptions): any }
 
 interface beforeMiddlewareType { (event: ServerlessLambdaEvent, context?: Object): any }
 interface catchMiddlewareType { (error: Error, event?: ServerlessLambdaEvent, context?: Object): any }
@@ -61,8 +67,7 @@ interface finallyMiddlewareType { (error?: Error, response?: Object, event?: Ser
 
 interface wrapFn {
     (wrapperFunction: wrapperFunctionType): lambdaHandler
-
-    logger: Logger
+    (wrapperFunction: wrapperFunctionType, localOptions: LambdaWrapOptions): lambdaHandler
 
     responseHandler: responseHandler
     errorResponseHandler: responseHandler
@@ -72,4 +77,4 @@ interface wrapFn {
     finally (finallyMiddleware: finallyMiddlewareType): void
 };
 
-export function lambdaWrap(options: LambdaWrapOptions): wrapFn;
+export function lambdaWrap(globalOptions: LambdaWrapOptions): wrapFn;

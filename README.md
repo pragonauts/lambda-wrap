@@ -67,20 +67,9 @@ module.exports.myHandler = wrap(async (event) => {
 
 ## lambdaWrap
 **Kind**: global class  
-
-* [lambdaWrap](#lambdaWrap)
-    * [new lambdaWrap([options])](#new_lambdaWrap_new)
-    * [~wrap(fn)](#lambdaWrap..wrap) ⇒ <code>lambdaHandler</code>
-        * [.responseHandler](#lambdaWrap..wrap.responseHandler)
-        * [.errorResponseHandler](#lambdaWrap..wrap.errorResponseHandler)
-        * [.logger](#lambdaWrap..wrap.logger)
-        * [.before(fn)](#lambdaWrap..wrap.before)
-        * [.catch(fn)](#lambdaWrap..wrap.catch)
-        * [.finally(fn)](#lambdaWrap..wrap.finally)
-
 <a name="new_lambdaWrap_new"></a>
 
-### new lambdaWrap([options])
+### new lambdaWrap([globalOptions])
 `lambdaWrap` function. You can pass options to override or assign new
 attributes to `event` object. For example add custom headers:
 
@@ -110,82 +99,11 @@ const handler = wrap(async (event) => {
 });
 </pre></code>
 
-**Returns**: <code>wrapFn</code> - - the wrap function  
+**Returns**: <code>function</code> - - the wrap function  
 
 | Param | Type | Description |
 | --- | --- | --- |
-| [options] | <code>LambdaWrapOptions</code> | Use to override or assign new attributes                                to `event` object. E.g. headers. |
-
-<a name="lambdaWrap..wrap"></a>
-
-### lambdaWrap~wrap(fn) ⇒ <code>lambdaHandler</code>
-**Kind**: inner method of [<code>lambdaWrap</code>](#lambdaWrap)  
-**Returns**: <code>lambdaHandler</code> - - Lambda handler.  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| fn | <code>function</code> | Function to be wrapped and used as a lambda handler. |
-
-
-* [~wrap(fn)](#lambdaWrap..wrap) ⇒ <code>lambdaHandler</code>
-    * [.responseHandler](#lambdaWrap..wrap.responseHandler)
-    * [.errorResponseHandler](#lambdaWrap..wrap.errorResponseHandler)
-    * [.logger](#lambdaWrap..wrap.logger)
-    * [.before(fn)](#lambdaWrap..wrap.before)
-    * [.catch(fn)](#lambdaWrap..wrap.catch)
-    * [.finally(fn)](#lambdaWrap..wrap.finally)
-
-<a name="lambdaWrap..wrap.responseHandler"></a>
-
-#### wrap.responseHandler
-Override default response function
-
-**Kind**: static property of [<code>wrap</code>](#lambdaWrap..wrap)  
-<a name="lambdaWrap..wrap.errorResponseHandler"></a>
-
-#### wrap.errorResponseHandler
-Override default error response function
-
-**Kind**: static property of [<code>wrap</code>](#lambdaWrap..wrap)  
-<a name="lambdaWrap..wrap.logger"></a>
-
-#### wrap.logger
-Override default logger object - `console`.
-MUST implement `log`, `warn` and `error` methods.
-
-**Kind**: static property of [<code>wrap</code>](#lambdaWrap..wrap)  
-<a name="lambdaWrap..wrap.before"></a>
-
-#### wrap.before(fn)
-Add new middleware.
-
-**Kind**: static method of [<code>wrap</code>](#lambdaWrap..wrap)  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| fn | <code>function</code> | Middleware function. |
-
-<a name="lambdaWrap..wrap.catch"></a>
-
-#### wrap.catch(fn)
-Add new catch.
-
-**Kind**: static method of [<code>wrap</code>](#lambdaWrap..wrap)  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| fn | <code>function</code> | Catch function. |
-
-<a name="lambdaWrap..wrap.finally"></a>
-
-#### wrap.finally(fn)
-Add finally method, which will be called after each request
-
-**Kind**: static method of [<code>wrap</code>](#lambdaWrap..wrap)  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| fn | <code>function</code> | Middleware function. |
+| [globalOptions] | <code>LambdaWrapOptions</code> | Use to override or assign new attributes |
 
 <a name="error"></a>
 
